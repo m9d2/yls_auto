@@ -30,7 +30,7 @@ RUN set -eux; \
 
 FROM alpine:3.18
 WORKDIR /app
-COPY --from=backend /app/backend/dbland .
+COPY --from=backend /app/backend/ysl .
 COPY config.yaml README.md LICENSE ./
 EXPOSE 2028
-CMD ./dbland start -p 2028
+CMD ./ysl start -p 2028
