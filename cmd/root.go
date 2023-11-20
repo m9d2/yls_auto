@@ -26,5 +26,5 @@ func Execute() {
 }
 
 func init() {
-	RootCmd.PersistentFlags().IntVarP(&port, "port", "p", 8081, "Port to listen on")
+	RootCmd.PersistentFlags().IntVarP(&port, "port", "p", 2028, "Port to listen on")
 }
