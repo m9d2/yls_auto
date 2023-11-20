@@ -1,8 +1,8 @@
 <template>
-  <div class="mian">
+  <div class="main">
     <div class="header clearfix">
       <div class="left fl">
-        <a-button @click="showModal">设置Token</a-button>
+        <a-button @click="showModal" style="margin-left: 8px">设置Token</a-button>
         <a-modal v-model:open="open" title="设置Token" @ok="setToken">
           <a-textarea v-model:value="token" placeholder="请输入" />
         </a-modal>
@@ -14,12 +14,12 @@
       <div class="right fr">
         <a-avatar :src="userInfo.avatar_url" style="margin-right: 8px;" />
         <a-tag>昵称：{{ userInfo.nick_name }}</a-tag>
-        <a-tag>当前积分：{{ userInfo.currentScoreSum }}</a-tag>
+        <a-tag style="margin-right: 8px">当前积分：{{ userInfo.currentScoreSum }}</a-tag>
       </div>
 
     </div>
     <div class="content">
-      <a-table class="table" :columns="columns" :data-source="goods" bordered :pagination="false">
+      <a-table class="table" :columns="columns" :data-source="goods" bordered :pagination="false" :loading="loadingTable">
         <template #bodyCell="{ column, text, record }">
           <template v-if="column.dataIndex === 'name'">
             <a>{{ text }}</a>
@@ -28,7 +28,7 @@
             <a-tag>{{ text }}</a-tag>
           </template>
           <template v-if="column.dataIndex === 'mainImage'">
-            <a-image :width="100" :src="text" />
+            <a-image :width="58" :src="text" />
           </template>
 
           <template v-else-if="column.dataIndex === 'operation'">
@@ -38,7 +38,7 @@
       </a-table>
 
       <div class="submit">
-        <a-button type="primary" class="right-button" @click="exchangeGoods">立即兑换</a-button>
+        <a-button class="right-button" @click="exchangeGoods" :loading="loadingSubmit" danger>立即兑换</a-button>
       </div>
     </div>
   </div>
@@ -48,9 +48,8 @@
 import { onMounted, ref } from 'vue';
 import { getGoods, getAddress, exchange, getUser } from '@/api/index';
 import type { AxiosPromise } from "axios";
-import { notification } from 'ant-design-vue';
+import { message } from 'ant-design-vue';
 
-const goodNum = ref<number>(0);
 const token = ref<string>('')
 const open = ref<boolean>(false);
 const goods = ref<any>();
@@ -62,18 +61,11 @@ const userInfo = ref<any>({
   nick_name: "",
   currentScoreSum: ""
 })
+const loadingSubmit = ref<boolean>(false)
+const loadingTable = ref<boolean>(false)
 
 const showModal = () => {
   open.value = true;
-};
-
-
-const openNotificationWithIcon = (type: string, message: string) => {
-  notification[type]({
-    message: message,
-    description:
-      '',
-  });
 };
 
 onMounted(() => {
@@ -114,11 +106,12 @@ const loadUser = () => {
   response.then((res: any) => {
     userInfo.value = res.data
   }).catch((error: any) => {
-    openNotificationWithIcon('warning', error.message)
+    message.error(error.message);
   })
 }
 
 const loadGoods = () => {
+  loadingTable.value = true
   const response: AxiosPromise<any[]> = getGoods(token.value);
   response.then((res: any) => {
     goods.value = res.data[0].list
@@ -126,7 +119,10 @@ const loadGoods = () => {
       item.num = 0;
     }
   }).catch((error: any) => {
-    openNotificationWithIcon('warning', error.message)
+    message.error(error.message);
+    throw error
+  }).finally(() => {
+    loadingTable.value = false
   })
 }
 
@@ -134,10 +130,14 @@ const loadAddress = () => {
   const response: AxiosPromise<any[]> = getAddress(token.value);
   response.then((res: any) => {
     address.value = res.data.list
+    loadingAddress.value = false
+  }).catch((error: any) => {
+    message.error(error.message);
   })
 }
 
 const exchangeGoods = () => {
+  loadingSubmit.value = true
   const data = []
   for (const item of goods.value) {
     if (item.num > 0) {
@@ -148,8 +148,11 @@ const exchangeGoods = () => {
   const response: AxiosPromise<any[]> = exchange({ address_id: addressId.value, product: data }, token.value);
   response.then((res: any) => {
     console.log(res)
+    message.success("兑换成功！");
   }).catch((error: any) => {
-    openNotificationWithIcon('warning', error.message)
+    message.error(error.message);
+  }).finally(() => {
+    loadingSubmit.value = false
   })
 }
 
@@ -169,7 +172,6 @@ const focus = () => {
 };
 
 const numChange = (value: number) => {
-
   const data = []
   for (const item of goods.value) {
     if (item.num > 0) {
@@ -200,25 +202,19 @@ const columns = [
 ];
 </script>
 <style scoped>
-.mian {
-  width: 1180px;
-  /* min-width: 1180px; */
+.main {
+  min-width: 1180px;
   margin: 0 auto;
 }
 
 .header {
-  /* margin: 20px; */
   padding: 8px 0;
-}
-
-th.column-money,
-td.column-money {
-  text-align: right !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02);
 }
 
 .content {
-  /* width: 60%; */
-  margin: 0 auto;
+  width: 80%;
+  margin: 8px auto;
 }
 
 .submit {

@@ -1,13 +1,9 @@
 package main
 
 import (
-	"ysl_auto/router"
+	"ysl_auto/cmd"
 )
 
 func main() {
-	r := router.InitRouter()
-	err := r.Run(":8081")
-	if err != nil {
-		return
-	}
+	cmd.Execute()
 }
