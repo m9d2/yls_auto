@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const baseUrl = import.meta.env.MODE == "release" ? window.location.origin : import.meta.env.VITE_SERVER
-// const baseUrl = "http://127.0.0.1:8081/v1"
+baseUrl = baseUrl + "/v1"
 
 const request = axios.create({
     baseURL: baseUrl,
