@@ -1,6 +1,8 @@
 package router
 
 import (
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"log/slog"
 	"net"
@@ -14,6 +16,9 @@ import (
 func InitRouter() *gin.Engine {
 	r := gin.New()
 
+	store := cookie.NewStore([]byte("secret"))
+
+	r.Use(sessions.Sessions("sid", store))
 	r.Use(Logger())
 	r.Use(corsMiddleware())
 
