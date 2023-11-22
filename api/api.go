@@ -1,11 +1,12 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sse"
 	"github.com/gin-gonic/gin"
-	"strings"
+	"net/http"
 	"time"
 	"ysl_auto/model"
 	"ysl_auto/service"
@@ -24,7 +25,6 @@ func (h WebHandler) InitRouter(g *gin.RouterGroup) {
 	g.GET("user", h.user)
 	g.POST("exchange", h.exchange)
 	g.GET("exchange-auto", h.exchangeAuto)
-	g.GET("sse", h.sse)
 }
 
 func (h WebHandler) list(c *gin.Context) {
@@ -81,49 +81,73 @@ func (h WebHandler) user(c *gin.Context) {
 }
 
 func (h WebHandler) exchangeAuto(c *gin.Context) {
-	sid, err := c.Cookie("sid")
-	if err != nil {
-		return
-	}
-	go func() {
-		for range time.Tick(1 * time.Second) {
-			ch <- sid + "@Hello"
-		}
-	}()
-
-	JSON(c, "ok")
-}
-
-func (h WebHandler) sse(c *gin.Context) {
 	c.Header("Content-Type", "text/event-stream")
 	c.Header("Cache-Control", "no-cache")
 	c.Header("Connection", "keep-alive")
 	c.Header("Access-Control-Allow-Origin", "*")
 
-	sid, err := c.Cookie("sid")
+	token := c.Query("token")
+	fmt.Println(token)
+	targetTimeStr := c.Query("time")
+	orderStr := c.Query("data")
+	order := model.NewOrder()
+	err := json.Unmarshal([]byte(orderStr), &order)
 	if err != nil {
+		JSON(c, err)
+		return
+	}
+	if err != nil {
+		JSON(c, err)
 		return
 	}
 
-	go func() {
-		for {
-			msg := <-ch
-			str := strings.Split(msg, "@")
+	now := time.Now()
 
-			fmt.Println("Message received in N:", msg)
+	targetTime, err := time.Parse("15:04:05", targetTimeStr)
+	if err != nil {
+		JSON(c, err)
+		return
+	}
 
-			if sid == str[0] {
-				err := sse.Encode(c.Writer, sse.Event{
-					Event: "log",
-					Data:  str[1],
-				})
-				if err != nil {
+	nextTargetTime := time.Date(now.Year(), now.Month(), now.Day(), targetTime.Hour(), targetTime.Minute(), targetTime.Second(), 0, now.Location())
+	if now.After(nextTargetTime) {
+		nextTargetTime = nextTargetTime.Add(24 * time.Hour)
+	}
+	timeUntilNextTargetTime := nextTargetTime.Sub(now)
+
+	timer := time.NewTimer(timeUntilNextTargetTime)
+
+	flusher, ok := c.Writer.(http.Flusher)
+	if !ok {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	roundTimer := time.NewTicker(2000 * time.Millisecond)
+
+	defer timer.Stop()
+	defer roundTimer.Stop()
+	for {
+		select {
+		case <-timer.C:
+			for {
+				select {
+				case <-roundTimer.C:
+					err := service.OrderSubmit(*order, token)
+					if err != nil {
+						err = sse.Encode(c.Writer, sse.Event{
+							Event: "message",
+							Data:  err.Error(),
+						})
+						if err != nil {
+							return
+						}
+					}
+					flusher.Flush()
+				case <-c.Writer.CloseNotify():
 					return
 				}
-				c.Writer.WriteString(str[1])
-				c.Writer.Flush()
 			}
-
 		}
-	}()
+	}
 }
