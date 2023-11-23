@@ -2,11 +2,13 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sse"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 	"time"
 	"ysl_auto/model"
 	"ysl_auto/service"
@@ -90,8 +92,20 @@ func (h WebHandler) exchangeAuto(c *gin.Context) {
 	fmt.Println(token)
 	targetTimeStr := c.Query("time")
 	orderStr := c.Query("data")
+	delayTime := c.Query("delayTime")
+
+	num, err := strconv.Atoi(delayTime)
+	if err != nil {
+		JSON(c, err)
+		return
+	}
+	if num < 200 {
+		JSON(c, errors.New("time "))
+		return
+	}
+
 	order := model.NewOrder()
-	err := json.Unmarshal([]byte(orderStr), &order)
+	err = json.Unmarshal([]byte(orderStr), &order)
 	if err != nil {
 		JSON(c, err)
 		return
@@ -123,7 +137,7 @@ func (h WebHandler) exchangeAuto(c *gin.Context) {
 		return
 	}
 
-	roundTimer := time.NewTicker(2000 * time.Millisecond)
+	roundTimer := time.NewTicker(time.Duration(num * 1000 * 1000))
 
 	defer timer.Stop()
 	defer roundTimer.Stop()
@@ -138,6 +152,14 @@ func (h WebHandler) exchangeAuto(c *gin.Context) {
 						err = sse.Encode(c.Writer, sse.Event{
 							Event: "message",
 							Data:  err.Error(),
+						})
+						if err != nil {
+							return
+						}
+					} else {
+						err = sse.Encode(c.Writer, sse.Event{
+							Event: "message",
+							Data:  "兑换成功！",
 						})
 						if err != nil {
 							return
