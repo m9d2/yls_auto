@@ -8,6 +8,7 @@ FROM alpine:3.18 as backend
 ENV GO_VERSION 1.21.1
 ENV CGO_ENABLED=1
 ENV GOPROXY=https://goproxy.cn
+ENV TZ=Asia/Shanghai
 WORKDIR /app/backend
 COPY ./ ./
 COPY --from=frontend /app/frontend/dist ./static

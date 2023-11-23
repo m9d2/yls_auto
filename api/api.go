@@ -3,10 +3,10 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sse"
 	"github.com/gin-gonic/gin"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -75,6 +75,7 @@ func (h WebHandler) exchange(c *gin.Context) {
 func (h WebHandler) user(c *gin.Context) {
 	token := c.Query("token")
 	user, err := service.GetUser(token)
+	slog.Info("User", "NickName", user.NickName, "AvatarUrl", user.AvatarUrl, "PhoneNumber", user.PhoneNumber, "CurrentScoreSum", user.CurrentScoreSum)
 	if err != nil {
 		JSON(c, err)
 	} else {
@@ -89,7 +90,6 @@ func (h WebHandler) exchangeAuto(c *gin.Context) {
 	c.Header("Access-Control-Allow-Origin", "*")
 
 	token := c.Query("token")
-	fmt.Println(token)
 	targetTimeStr := c.Query("time")
 	orderStr := c.Query("data")
 	delayTime := c.Query("delayTime")
