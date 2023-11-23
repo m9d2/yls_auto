@@ -1,109 +1,111 @@
 <template>
 
-  <!-- 头 -->
-  <a-layout-header class="header clearfix">
-    <div class="left fl">
-      <a-space>
-        <a-button @click="showModal" style="margin-left: 8px">设置Token</a-button>
-        <a-modal v-model:open="open" title="设置Token" @ok="setToken">
-          <a-textarea v-model:value="token" placeholder="请输入" style="height: 200px;"/>
-        </a-modal>
-        <a-select ref="select" v-model:value="defaultAddress" style="width: 220px;" @focus="focus"
-                  @change="handleChange" placeholder="请选择收货地址">
-          <a-select-option v-for="item in address" :value="item.id">{{ item.address }}</a-select-option>
-        </a-select>
-      </a-space>
-    </div>
-    <div class="right fr" v-if="userInfo">
-      <a-space>
-        <a-avatar :src="userInfo.avatar_url"/>
-        <a-tag>昵称：{{ userInfo.nick_name }}</a-tag>
-        <a-tag>当前积分：{{ userInfo.currentScoreSum }}</a-tag>
-      </a-space>
-    </div>
-  </a-layout-header>
+ <div style="min-width: 1280px">
+   <!-- 头 -->
+   <a-layout-header class="header clearfix">
+     <div class="left fl">
+       <a-space>
+         <a-button @click="showModal" style="margin-left: 8px">设置Token</a-button>
+         <a-modal v-model:open="open" title="设置Token" @ok="setToken">
+           <a-textarea v-model:value="token" placeholder="请输入" style="height: 200px;"/>
+         </a-modal>
+         <a-select ref="select" v-model:value="defaultAddress" style="width: 220px;" @focus="focus"
+                   @change="handleChange" placeholder="请选择收货地址">
+           <a-select-option v-for="item in address" :value="item.id">{{ item.address }}</a-select-option>
+         </a-select>
+       </a-space>
+     </div>
+     <div class="right fr" v-if="userInfo">
+       <a-space>
+         <a-avatar :src="userInfo.avatar_url"/>
+         <a-tag>昵称：{{ userInfo.nick_name }}</a-tag>
+         <a-tag>当前积分：{{ userInfo.currentScoreSum }}</a-tag>
+       </a-space>
+     </div>
+   </a-layout-header>
 
-  <!-- 内容区 -->
-  <a-layout-content class="content">
+   <!-- 内容区 -->
+   <a-layout-content class="content">
 
-    <a-table class="table" :columns="columns" :data-source="goods" bordered :pagination="false" :loading="loadingTable">
-      <template #bodyCell="{ column, text, record }">
-        <template v-if="column.dataIndex === 'name'">
-          <a>{{ text }}</a>
-        </template>
-        <template v-if="column.dataIndex === 'point'">
-          <a-tag>{{ text }}</a-tag>
-        </template>
-        <template v-if="column.dataIndex === 'mainImage'">
-          <a-image :width="58" :src="text"/>
-        </template>
+     <a-table class="table" :columns="columns" :data-source="goods" bordered :pagination="false" :loading="loadingTable">
+       <template #bodyCell="{ column, text, record }">
+         <template v-if="column.dataIndex === 'name'">
+           <a>{{ text }}</a>
+         </template>
+         <template v-if="column.dataIndex === 'point'">
+           <a-tag>{{ text }}</a-tag>
+         </template>
+         <template v-if="column.dataIndex === 'mainImage'">
+           <a-image :width="58" :src="text"/>
+         </template>
 
-        <template v-else-if="column.dataIndex === 'num'">
-          <a-input-number id="inputNumber" v-model:value="record.num" :min="0" :max="10" @change="numChange"/>
-        </template>
-      </template>
-    </a-table>
+         <template v-else-if="column.dataIndex === 'num'">
+           <a-input-number id="inputNumber" v-model:value="record.num" :min="0" :max="10" @change="numChange"/>
+         </template>
+       </template>
+     </a-table>
 
-    <div class="submit fr">
-      <a-space>
-        <a-button class="right-button" type="primary" @click="loadGoods">刷新</a-button>
-        <a-button class="right-button" type="primary" @click="showDrawer">定时兑换</a-button>
-        <a-button class="right-button" type="primary" @click="exchangeGoods" :loading="loadingSubmit">立即兑换
-        </a-button>
-      </a-space>
-    </div>
-  </a-layout-content>
+     <div class="submit fr">
+       <a-space>
+         <a-button class="right-button" type="primary" @click="loadGoods">刷新</a-button>
+         <a-button class="right-button" type="primary" @click="showDrawer">定时兑换</a-button>
+         <a-button class="right-button" type="primary" @click="exchangeGoods" :loading="loadingSubmit">立即兑换
+         </a-button>
+       </a-space>
+     </div>
+   </a-layout-content>
 
-  <!-- 抽屉 -->
-  <div class="drawer">
-    <a-drawer
-        title="定时兑换"
-        :width="720"
-        :open="drawerStatus"
-        :body-style="{ paddingBottom: '80px' }"
-        :footer-style="{ textAlign: 'right' }"
-        @close="oncloseDrawer"
-    >
-      <a-form :model="form" layout="vertical">
-        <a-form-item label="开始时间" name="time" style="margin-top: 8px">
-          <a-time-picker format="HH:mm:ss" @change="onRangeChange"/>
-        </a-form-item>
-        <a-form-item label="延迟时间（毫秒）" name="time" style="margin-top: 8px">
-          <a-input v-model:value="delayTime" style="width: 123px;"/>
-        </a-form-item>
-        <a-table class="table" :columns="columnsSub" :data-source="goodsSub" bordered :pagination="false"
-                 :loading="loadingTable">
-          <template #bodyCell="{ column, text, record }">
-            <template v-if="column.dataIndex === 'name'">
-              <a>{{ text }}</a>
-            </template>
-          </template>
-        </a-table>
-      </a-form>
-      <template #extra>
-        <a-space>
-          <a-button type="primary" @click="stop" v-if="start" danger>暂停任务</a-button>
-          <a-button type="primary" @click="autoExchange" v-else>开始任务</a-button>
-        </a-space>
-      </template>
+   <!-- 抽屉 -->
+   <div class="drawer">
+     <a-drawer
+         title="定时兑换"
+         :width="720"
+         :open="drawerStatus"
+         :body-style="{ paddingBottom: '80px' }"
+         :footer-style="{ textAlign: 'right' }"
+         @close="oncloseDrawer"
+     >
+       <a-form :model="form" layout="vertical">
+         <a-form-item label="开始时间" name="time" style="margin-top: 8px">
+           <a-time-picker format="HH:mm:ss" @change="onRangeChange"/>
+         </a-form-item>
+         <a-form-item label="延迟时间（毫秒）" name="time" style="margin-top: 8px">
+           <a-input v-model:value="delayTime" style="width: 123px;"/>
+         </a-form-item>
+         <a-table class="table" :columns="columnsSub" :data-source="goodsSub" bordered :pagination="false"
+                  :loading="loadingTable">
+           <template #bodyCell="{ column, text, record }">
+             <template v-if="column.dataIndex === 'name'">
+               <a>{{ text }}</a>
+             </template>
+           </template>
+         </a-table>
+       </a-form>
+       <template #extra>
+         <a-space>
+           <a-button type="primary" @click="stop" v-if="start" danger>暂停任务</a-button>
+           <a-button type="primary" @click="autoExchange" v-else>开始任务</a-button>
+         </a-space>
+       </template>
 
-      <div style="margin-top: 20px;" v-if="output.length > 0">
-        <a-card title="执行日志" :bordered="true">
-          <div ref="outputRef" class="output" style="height: 260px; overflow: auto">
-            <p v-for="item in output">
-              <span style="color: #1677FF;">{{ item.time }}</span>
-              - {{ item.message }}
-            </p>
-          </div>
-        </a-card>
-      </div>
-    </a-drawer>
-  </div>
+       <div style="margin-top: 20px;" v-if="output.length > 0">
+         <a-card title="执行日志" :bordered="true">
+           <div ref="outputRef" class="output" style="height: 260px; overflow: auto">
+             <p v-for="item in output">
+               <span style="color: #1677FF;">{{ item.time }}</span>
+               - {{ item.message }}
+             </p>
+           </div>
+         </a-card>
+       </div>
+     </a-drawer>
+   </div>
 
-  <!-- 底部 -->
-  <a-layout-footer class="footer">
-    Version：0.0.1
-  </a-layout-footer>
+   <!-- 底部 -->
+   <a-layout-footer class="footer">
+     Version：0.0.1
+   </a-layout-footer>
+ </div>
 </template>
 
 <script lang="ts" setup>
