@@ -161,9 +161,14 @@ func (h WebHandler) exchangeAuto(c *gin.Context) {
 							Event: "message",
 							Data:  "兑换成功！",
 						})
+						err = sse.Encode(c.Writer, sse.Event{
+							Event: "stop",
+							Data:  "",
+						})
 						if err != nil {
 							return
 						}
+						return
 					}
 					flusher.Flush()
 				case <-c.Writer.CloseNotify():

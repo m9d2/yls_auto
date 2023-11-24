@@ -270,12 +270,6 @@ const autoExchange = () => {
   const order = {address_id: addressId.value, product: data}
   eventSource = new EventSource(baseUrl + "/exchange-auto?token=" + token.value + "&time=" + timeStr.value + "&data=" + JSON.stringify(order) + "&delayTime=" + delayTime.value);
 
-  function scrollToBottom() {
-    if (outputRef.value) {
-      outputRef.value.scrollTop = outputRef.value.scrollHeight;
-    }
-  }
-
   eventSource.addEventListener("message", function (event) {
     const data = event.data;
     output.value.push({time: formatTime(new Date()), message: data})
@@ -296,6 +290,12 @@ const autoExchange = () => {
   });
   message.success("任务已开始");
   start.value = true
+}
+
+function scrollToBottom() {
+  if (outputRef.value) {
+    outputRef.value.scrollTop = outputRef.value.scrollHeight;
+  }
 }
 
 const stop = () => {
