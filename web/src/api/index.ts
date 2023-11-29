@@ -23,3 +23,7 @@ export const exchange = (data: any, token: string): AxiosPromise<any[]> => {
 export const getUser = (token: string): AxiosPromise<any[]> => {
     return request.get<any[]>(API.USER_URL + "?token=" + token);
 };
+
+export const getTags = (): AxiosPromise<any[]> => {
+    return request.get<any[]>("https://api.github.com/repos/m9d2/ysl_auto/tags");
+};

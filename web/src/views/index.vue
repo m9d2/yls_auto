@@ -17,16 +17,34 @@
       </div>
       <div class="right fr" v-if="userInfo">
         <a-space>
-          <a-avatar :src="userInfo.avatar_url"/>
+          <a><a-avatar :src="userInfo.avatar_url" @click="openUserInfo = true"/></a>
           <a-tag>昵称：{{ userInfo.nick_name }}</a-tag>
           <a-tag>当前积分：{{ userInfo.currentScoreSum }}</a-tag>
         </a-space>
       </div>
+      <a-drawer
+          v-model:open="openUserInfo"
+          class="custom-class"
+          root-class-name="root-class-name"
+          :root-style="{ color: 'blue' }"
+          title="个人信息"
+          :width="420"
+          placement="right"
+      >
+        <a-descriptions :title="userInfo.nick_name" :column="1">
+          <a-descriptions-item label=""><a-avatar :src="userInfo.avatar_url"/></a-descriptions-item>
+          <a-descriptions-item label="手机号">{{ userInfo.phone_number }}</a-descriptions-item>
+          <a-descriptions-item label="生日">{{ userInfo.birthday }}</a-descriptions-item>
+          <a-descriptions-item label="会员ID">{{ userInfo.consumerID }}</a-descriptions-item>
+          <a-descriptions-item label="会员等级"><a-tag color="#3b5999">{{ userInfo.grade }}</a-tag>（{{userInfo.expireDateText}}）</a-descriptions-item>
+          <a-descriptions-item label="积分"><a-tag color="#108ee9">{{ userInfo.currentScoreSum }}</a-tag></a-descriptions-item>
+          <a-descriptions-item label="积分有效期">{{ userInfo.expireScoreDate }}</a-descriptions-item>
+        </a-descriptions>
+      </a-drawer>
     </a-layout-header>
 
     <!-- 内容区 -->
     <a-layout-content class="content">
-
       <a-table class="table" :columns="columns" :data-source="goods" bordered :pagination="false"
                :loading="loadingTable">
         <template #bodyCell="{ column, text, record }">
@@ -60,7 +78,7 @@
     <div class="drawer">
       <a-drawer
           title="定时兑换"
-          :width="720"
+          :width="420"
           :open="drawerStatus"
           :body-style="{ paddingBottom: '80px' }"
           :footer-style="{ textAlign: 'right' }"
@@ -104,20 +122,22 @@
 
     <!-- 底部 -->
     <a-layout-footer class="footer">
-      Version：0.0.6
+      <a-button type="link" href="https://github.com/m9d2/ysl_auto" target="_blank" style="padding: 0; color: #000; font-size: 12px;">ysl_auto</a-button>
+      <span> - {{version}}</span>
     </a-layout-footer>
   </div>
 </template>
 
 <script lang="ts" setup>
 import {onMounted, ref, reactive} from 'vue';
-import {getGoods, getAddress, exchange, getUser} from '@/api/index';
+import {getGoods, getAddress, exchange, getUser, getTags} from '@/api/index';
 import type {AxiosPromise} from "axios";
 import {message} from 'ant-design-vue';
 import {Dayjs} from 'dayjs';
 
 const token = ref<string>('')
 const open = ref<boolean>(false);
+const openUserInfo = ref<boolean>(false);
 const goods = ref<any>();
 const goodsSub = ref<any>();
 const address = ref<any>();
@@ -133,6 +153,7 @@ const timeStr = ref<String>()
 const delayTime = ref<Number>(500)
 const form = reactive({});
 const output = ref([])
+let version = ref()
 const columns = [
   {
     title: '名称',
@@ -163,6 +184,7 @@ const columnsSub = [
 ];
 
 onMounted(() => {
+  getLastTag()
   const tokenStr = localStorage.getItem('token');
   if (tokenStr) {
     token.value = tokenStr
@@ -176,7 +198,6 @@ onMounted(() => {
     defaultAddress.value = json.address
     addressId.value = json.id
   }
-
 })
 
 const loadUser = () => {
@@ -184,6 +205,17 @@ const loadUser = () => {
   response.then((res: any) => {
     userInfo.value = res.data
   }).catch((error: any) => {
+    //
+  })
+}
+
+const getLastTag = () => {
+  const response: AxiosPromise<any[]> = getTags();
+  response.then((res: any) => {
+    if (res) {
+      version.value = res[0].name
+    }
+  }).catch((error) => {
     //
   })
 }
@@ -373,8 +405,9 @@ const formatTime = (date) => {
   bottom: 0;
   right: 0;
   width: 100%;
-  opacity: .35;
+  opacity: .55;
   font-size: 12px;
+  color: #000;
 }
 
 .submit {

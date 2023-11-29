@@ -25,10 +25,14 @@ request.interceptors.request.use(
 request.interceptors.response.use(
     response => {
         const { code, message } = response.data;
+        if (!code) {
+            return response.data
+        }
         if (loadingInstance) {
             loadingInstance.close();
         }
         if (code === 200) {
+
             return response.data;
         } else if (code == 400) {
             throw new Error(message)

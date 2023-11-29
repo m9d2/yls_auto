@@ -1,5 +1,9 @@
 <template>
-  <a-config-provider :locale="locale">
+  <a-config-provider :locale="locale" :theme="{
+      token: {
+        colorPrimary: '#3b5999',
+      },
+    }">
     <RouterView></RouterView>
   </a-config-provider>
 </template>
