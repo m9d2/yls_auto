@@ -68,7 +68,7 @@
         <a-space>
           <a-button class="right-button" type="primary" @click="loadGoods">刷新</a-button>
           <a-button class="right-button" type="primary" @click="showDrawer">定时兑换</a-button>
-          <a-button class="right-button" type="primary" @click="exchangeGoods" :loading="loadingSubmit">立即兑换
+          <a-button class="right-button" @click="exchangeGoods" :loading="loadingSubmit">立即兑换
           </a-button>
         </a-space>
       </div>
@@ -197,6 +197,7 @@ onMounted(() => {
     const json = JSON.parse(addressStr);
     defaultAddress.value = json.address
     addressId.value = json.id
+    console.log(addressId.value)
   }
 })
 
@@ -344,7 +345,9 @@ const setToken = (e: MouseEvent) => {
 };
 
 const handleChange = (value: string) => {
-  const addr = address.value.find((item: { id: string; }) => item.id === value)
+  let addr = address.value.find((item: { id: string; }) => item.id === value)
+  addressId.value = addr.id
+  console.log(addressId.value)
   localStorage.setItem('address', JSON.stringify(addr));
 };
 
