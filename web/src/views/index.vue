@@ -122,8 +122,8 @@
 
     <!-- 底部 -->
     <a-layout-footer class="footer">
-      <a-button type="link" href="https://github.com/m9d2/ysl_auto" target="_blank" style="padding: 0; color: #000; font-size: 12px;">ysl_auto</a-button>
-      <span> - {{version}}</span>
+      <a-button type="link" href="https://github.com/m9d2/ysl_auto" target="_blank" style="padding: 0; color: #000; font-size: 12px;">m9d2/ysl_auto</a-button>
+      <a-button type="link" href="https://github.com/m9d2/ysl_auto/releases" target="_blank" style="padding: 0; color: #000; font-size: 12px;">- Release {{version}}</a-button>
     </a-layout-footer>
   </div>
 </template>
@@ -408,6 +408,8 @@ const formatTime = (date) => {
   opacity: .55;
   font-size: 12px;
   color: #000;
+  height: 30px;
+  line-height: 30px;
 }
 
 .submit {
