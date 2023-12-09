@@ -130,7 +130,7 @@
 
 <script lang="ts" setup>
 import {onMounted, ref, reactive} from 'vue';
-import {getGoods, getAddress, exchange, getUser, getTags} from '@/api/index';
+import {getGoods, getAddress, exchange, getUser, getTags} from '@/api';
 import type {AxiosPromise} from "axios";
 import {message} from 'ant-design-vue';
 import {Dayjs} from 'dayjs';
